@@ -21,8 +21,10 @@ def upload_file():
                                     filename=filename))
         else:
             file_type_error = 'File type is not supported. Please use JPG or JPEG'
+            return render_template('err.html')
 
-    return render_template('upload.html', file_type_error = file_type_error)
+    if request.method == 'GET':
+      return render_template('upload.html')
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'],
