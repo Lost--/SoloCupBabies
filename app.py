@@ -1,38 +1,30 @@
-import os
-from flask import Flask, request, redirect, url_for, send_from_directory, render_template
-from werkzeug import secure_filename
-UPLOAD_FOLDER = 'uploads'
-ALLOWED_EXTENSIONS = set(['jpg', 'jpeg'])
-app = Flask(__name__)
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+#!/usr/bin/python
 
-def allowed_file(filename):
-    return '.' in filename and \
-           filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
+import cv2 
+import numpy as np
+import sys
 
-@app.route('/', methods=['GET', 'POST'])
-def upload_file():
-    if request.method == 'POST':
-        file = request.files['file']
-        if file and allowed_file(file.filename):
-            filename = secure_filename(file.filename)
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            return redirect(url_for('uploaded_file',
-                                    filename=filename))
-        else:
-            file_type_error = 'File type is not supported. Please use JPG or JPEG'
-            return render_template('err.html')
+def main (argv):
+  img = cv2.imread(argv[1])
+  lower = np.array([10, 10, 150], dtype ="uint8")
+  upper = np.array([60, 60, 250], dtype="uint8")
+  mask = cv2.inRange(img, lower, upper)
+  output = cv2.bitwise_and(img, img, mask=mask)
+  outgray = cv2.cvtColor(output,cv2.COLOR_BGR2GRAY)
+  ret,thresh = cv2.threshold(outgray,127,255,0)
+  contours, hierarchy = cv2.findContours(thresh,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+  print contours
+  for cnt in contours:
+    print cnt
 
-    if request.method == 'GET':
-      return render_template('upload.html')
-@app.route('/uploads/<filename>')
-def uploaded_file(filename):
-    return send_from_directory(app.config['UPLOAD_FOLDER'],
-                               filename)
+  '''
+  contours, hier = cv2.findContours(output,cv2.RETR_LIST,cv2.CHAIN_APPROX_SIMPLE)
+  for cnt in contours:
+    if 200<cv2.contourArea(cnt)<5000:
+      cv2.drawContours(img,[cnt],0,(0,255,0),2)
+      cv2.drawContours(mask,[cnt],0,255,-1)
 
-@app.route('/help')
-def get_help():
-	return 'There is no God'
-
-if __name__ == '__main__':
-    app.run(debug=True)
+  cv2.waitKey(0)
+  '''
+if __name__ == "__main__":
+  main(sys.argv)
