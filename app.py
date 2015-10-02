@@ -3,6 +3,7 @@
 import cv2
 import numpy as np
 import sys
+import math
 
 
 def get_contours(img):
@@ -31,8 +32,15 @@ def get_largest_contour(contours):
 if __name__ == "__main__":
 	img = cv2.imread(sys.argv[1])
 	contours = get_contours(img)
-	print contours
 	largest = get_largest_contour(contours)
-	cv2.drawContours(img, largest, -1, (255,0,0), 3)
-	cv2.imshow("title", img)
+	print len(largest)
+	x,y,w,h = cv2.boundingRect(largest)
+	_, width, _ = img.shape
+	x = int(x - math.ceil(width/16))
+	y = int(math.ceil(y/1.3))
+	w = int(math.ceil(w * 2.5))
+	h = int(math.ceil(h * 2.4))
+   	cv2.rectangle(img,(x,y),(x+w, y+h),(0,255,0),2)
+	cup = img[y:y+h, x:x+w]
+	cv2.imshow("cups", cup)
 	cv2.waitKey(0)
